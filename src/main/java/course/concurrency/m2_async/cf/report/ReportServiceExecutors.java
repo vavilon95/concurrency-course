@@ -8,18 +8,27 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class ReportServiceExecutors {
 
-    private ExecutorService executor = Executors.newCachedThreadPool();
+  private ExecutorService executor = Executors.newCachedThreadPool();
+//  private ExecutorService executor = Executors.newSingleThreadExecutor();
+//  private ExecutorService executor = Executors.newFixedThreadPool(3);
+//  private ExecutorService executor = Executors.newFixedThreadPool(6);
+//  private ExecutorService executor = Executors.newFixedThreadPool(12);
+//  private ExecutorService executor = Executors.newFixedThreadPool(24);
+//  private ExecutorService executor = Executors.newFixedThreadPool(48);
 
     private LoadGenerator loadGenerator = new LoadGenerator();
 
     public Others.Report getReport() {
         Future<Collection<Others.Item>> iFuture =
-                executor.submit(() -> getItems());
+                executor.submit(this::getItems);
         Future<Collection<Others.Customer>> customersFuture =
-                executor.submit(() -> getActiveCustomers());
+                executor.submit(this::getActiveCustomers);
 
         try {
             Collection<Others.Customer> customers = customersFuture.get();

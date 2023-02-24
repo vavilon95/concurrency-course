@@ -6,11 +6,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 
 public class ReportServiceCF {
 
     private ExecutorService executor = ForkJoinPool.commonPool();
+//      private ExecutorService executor = Executors.newCachedThreadPool();
+//  private ExecutorService executor = Executors.newFixedThreadPool(3);
+//  private ExecutorService executor = Executors.newFixedThreadPool(6);
+//  private ExecutorService executor = Executors.newFixedThreadPool(12);
+//  private ExecutorService executor = Executors.newFixedThreadPool(24);
+//  private ExecutorService executor = Executors.newFixedThreadPool(48);
 
     private LoadGenerator loadGenerator = new LoadGenerator();
 
