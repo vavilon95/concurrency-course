@@ -31,19 +31,18 @@ public class PriceAggregator {
                 shopId ->
                     CompletableFuture.supplyAsync(
                             () -> priceRetriever.getPrice(itemId, shopId), executor)
+                        .orTimeout(SLA, TimeUnit.MILLISECONDS)
                         .exceptionally(throwable -> null))
             .toArray(CompletableFuture[]::new);
 
-    try {
-      CompletableFuture.allOf(features).get(SLA, TimeUnit.MILLISECONDS);
-    } catch (Exception e) {
-      // ignore
-    }
-    return Stream.of(features)
-        .filter(future -> future.isDone() && !future.isCompletedExceptionally())
-        .map(feature -> (Double) feature.join())
-        .filter(Objects::nonNull)
-        .min(Double::compareTo)
-        .orElse(Double.NaN);
+    return CompletableFuture.allOf(features)
+        .thenApply(
+            r ->
+                Stream.of(features)
+                    .map(feature -> (Double) feature.join())
+                    .filter(Objects::nonNull)
+                    .min(Double::compareTo)
+                    .orElse(Double.NaN))
+        .join();
   }
 }
