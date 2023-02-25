@@ -30,15 +30,8 @@ public class PriceAggregator {
             .map(
                 shopId ->
                     CompletableFuture.supplyAsync(
-                        () -> {
-                          try {
-                            return priceRetriever.getPrice(itemId, shopId);
-                          } catch (Exception e) {
-                            // ignored
-                          }
-                          return null;
-                        },
-                        executor))
+                            () -> priceRetriever.getPrice(itemId, shopId), executor)
+                        .exceptionally(throwable -> null))
             .toArray(CompletableFuture[]::new);
 
     try {
