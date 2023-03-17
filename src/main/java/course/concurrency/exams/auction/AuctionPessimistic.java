@@ -1,7 +1,5 @@
 package course.concurrency.exams.auction;
 
-import java.util.Objects;
-
 public class AuctionPessimistic implements Auction {
 
     private Notifier notifier;
@@ -10,18 +8,23 @@ public class AuctionPessimistic implements Auction {
         this.notifier = notifier;
     }
 
-    private volatile Bid latestBid;
+    private volatile Bid latestBid = new Bid(null, null, Long.MIN_VALUE);
 
-    public synchronized boolean propose(Bid bid) {
-        if (Objects.isNull(latestBid) || bid.getPrice() > latestBid.getPrice()) {
-            latestBid = bid;
-            notifier.sendOutdatedMessage(latestBid);
-            return true;
+    public boolean propose(Bid bid) {
+        if (bid.getPrice() > latestBid.getPrice()) {
+            synchronized(latestBid) {
+                if (bid.getPrice() > latestBid.getPrice()) {
+                    latestBid = bid;
+                    notifier.sendOutdatedMessage(latestBid);
+                    return true;
+                }
+            }
+            return false;
         }
         return false;
     }
 
-    public synchronized Bid getLatestBid() {
+    public Bid getLatestBid() {
         return latestBid;
     }
 }
