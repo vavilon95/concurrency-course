@@ -35,7 +35,9 @@ public class AuctionStoppablePessimistic implements AuctionStoppable {
     }
 
     public Bid stopAuction() {
-        stop = true;
-        return latestBid;
+        synchronized (latestBid) {
+            stop = true;
+            return latestBid;
+        }
     }
 }
