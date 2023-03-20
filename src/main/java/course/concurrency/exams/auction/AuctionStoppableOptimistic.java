@@ -15,12 +15,14 @@ public class AuctionStoppableOptimistic implements AuctionStoppable {
 
     public boolean propose(Bid bid) {
         Bid current;
+        boolean currentMark;
         do {
             current = latestBid.getReference();
-            if (bid.getPrice() <= current.getPrice() || !latestBid.isMarked()) {
+            currentMark = latestBid.isMarked();
+            if (bid.getPrice() <= current.getPrice() || !currentMark) {
                 return false;
             }
-        } while (!latestBid.compareAndSet(current, bid, latestBid.isMarked(), latestBid.isMarked()));
+        } while (!latestBid.compareAndSet(current, bid, currentMark, latestBid.isMarked()));
         notifier.sendOutdatedMessage(latestBid.getReference());
         return true;
     }
