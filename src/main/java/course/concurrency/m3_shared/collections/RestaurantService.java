@@ -1,9 +1,10 @@
 package course.concurrency.m3_shared.collections;
 
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class RestaurantService {
 
@@ -13,7 +14,7 @@ public class RestaurantService {
         put("C", new Restaurant("C"));
     }};
 
-    private Object stat;
+    private ConcurrentHashMap<String, Integer> stat = new ConcurrentHashMap<>();
 
     public Restaurant getByName(String restaurantName) {
         addToStat(restaurantName);
@@ -21,11 +22,10 @@ public class RestaurantService {
     }
 
     public void addToStat(String restaurantName) {
-        // your code
+        stat.compute(restaurantName, (key, value) -> Objects.isNull(value) ? 1 : value + 1);
     }
 
     public Set<String> printStat() {
-        // your code
-        return new HashSet<>();
+        return stat.entrySet().stream().map(entry -> entry.getKey() + " - " + entry.getValue()).collect(Collectors.toSet());
     }
 }
