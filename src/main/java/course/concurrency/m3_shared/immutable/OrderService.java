@@ -1,46 +1,56 @@
 package course.concurrency.m3_shared.immutable;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.LongAdder;
+import org.springframework.util.CollectionUtils;
 
 public class OrderService {
 
-    private Map<Long, Order> currentOrders = new HashMap<>();
-    private long nextId = 0L;
+  private final ConcurrentHashMap<Long, Order> currentOrders = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, Boolean> packedOrders = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, Boolean> deliveredOrders = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, PaymentInfo> paymentOrders = new ConcurrentHashMap<>();
+  private final LongAdder nextId = new LongAdder();
 
-    private synchronized long nextId() {
-        return nextId++;
-    }
+  private long nextId() {
+    nextId.increment();
+    return nextId.longValue();
+  }
 
-    public synchronized long createOrder(List<Item> items) {
-        long id = nextId();
-        Order order = new Order(items);
-        order.setId(id);
-        currentOrders.put(id, order);
-        return id;
-    }
+  public long createOrder(List<Item> items) {
+    long id = nextId();
+    Order order = new Order(id, items);
+    currentOrders.putIfAbsent(id, order);
+    return id;
+  }
 
-    public synchronized void updatePaymentInfo(long orderId, PaymentInfo paymentInfo) {
-        currentOrders.get(orderId).setPaymentInfo(paymentInfo);
-        if (currentOrders.get(orderId).checkStatus()) {
-            deliver(currentOrders.get(orderId));
-        }
-    }
+  public void updatePaymentInfo(long orderId, PaymentInfo paymentInfo) {
+    paymentOrders.putIfAbsent(orderId, paymentInfo);
+    checkPossibleDelivery(orderId);
+  }
 
-    public synchronized void setPacked(long orderId) {
-        currentOrders.get(orderId).setPacked(true);
-        if (currentOrders.get(orderId).checkStatus()) {
-            deliver(currentOrders.get(orderId));
-        }
-    }
+  public void setPacked(long orderId) {
+    packedOrders.putIfAbsent(orderId, true);
+    checkPossibleDelivery(orderId);
+  }
 
-    private synchronized void deliver(Order order) {
-        /* ... */
-        currentOrders.get(order.getId()).setStatus(Order.Status.DELIVERED);
+  private void checkPossibleDelivery(long orderId) {
+    var order = currentOrders.getOrDefault(orderId, null);
+    if (Objects.nonNull(order)
+        && !CollectionUtils.isEmpty(order.getItems())
+        && packedOrders.containsKey(orderId)
+        && paymentOrders.containsKey(orderId)) {
+      deliver(order);
     }
+  }
 
-    public synchronized boolean isDelivered(long orderId) {
-        return currentOrders.get(orderId).getStatus().equals(Order.Status.DELIVERED);
-    }
+  private void deliver(Order order) {
+    deliveredOrders.putIfAbsent(order.getId(), true);
+  }
+
+  public boolean isDelivered(long orderId) {
+    return deliveredOrders.containsKey(orderId);
+  }
 }
