@@ -8,7 +8,7 @@ import org.springframework.util.CollectionUtils;
 
 public class Order {
 
-    public enum Status { NEW, IN_PROGRESS, DELIVERED }
+    public enum Status { NEW, IN_PROGRESS, START_DELIVERY, DELIVERED }
 
     private final Long id;
     private final List<Item> items;
@@ -17,26 +17,16 @@ public class Order {
     private final boolean isPacked;
     private final Status status;
 
-    public Order(Long id, List<Item> items, PaymentInfo paymentInfo, boolean isPacked) {
+    public Order(Long id, List<Item> items, PaymentInfo paymentInfo, boolean isPacked, Status status) {
         this.id = id;
         this.items = new ArrayList<>(items);
         this.paymentInfo = paymentInfo;
         this.isPacked = isPacked;
-        this.status = calculateStatus();
-    }
-
-    private Status calculateStatus() {
-        if (paymentInfo != null && isPacked) {
-            return Status.DELIVERED;
-        }
-        if (paymentInfo == null && !isPacked) {
-            return Status.NEW;
-        }
-       return Status.IN_PROGRESS;
+        this.status = status;
     }
 
     public boolean checkStatus() {
-        return status.equals(Status.DELIVERED);
+        return !CollectionUtils.isEmpty(items) && paymentInfo != null && isPacked;
     }
 
     public Long getId() {
