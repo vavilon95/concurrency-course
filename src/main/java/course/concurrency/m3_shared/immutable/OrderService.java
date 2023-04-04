@@ -23,18 +23,18 @@ public class OrderService {
   }
 
   public void updatePaymentInfo(long orderId, PaymentInfo paymentInfo) {
-    checkPossibleDelivery(currentOrders.computeIfPresent(
-            orderId, (key, order) -> new Order(key, order.getItems(), paymentInfo, order.isPacked(), Status.IN_PROGRESS)));
+    Order orderWithPayment = currentOrders.computeIfPresent(
+            orderId, (key, order) -> new Order(key, order.getItems(), paymentInfo, order.isPacked(), Status.IN_PROGRESS));
+    if (Objects.nonNull(orderWithPayment) && orderWithPayment.checkStatus()) {
+      deliver(orderWithPayment);
+    }
   }
 
   public void setPacked(long orderId) {
-    checkPossibleDelivery(currentOrders.computeIfPresent(
-            orderId, (key, order) -> new Order(key, order.getItems(), order.getPaymentInfo(), true, Status.IN_PROGRESS)));
-  }
-
-  private void checkPossibleDelivery(Order order) {
-    if (Objects.nonNull(order) && order.checkStatus()) {
-        deliver(order);
+    Order orderPacked = currentOrders.computeIfPresent(
+            orderId, (key, order) -> new Order(key, order.getItems(), order.getPaymentInfo(), true, Status.IN_PROGRESS));
+    if (Objects.nonNull(orderPacked) && orderPacked.checkStatus()) {
+      deliver(orderPacked);
     }
   }
 
