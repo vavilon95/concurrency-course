@@ -8,7 +8,7 @@ import org.springframework.util.CollectionUtils;
 
 public class Order {
 
-    public enum Status { NEW, IN_PROGRESS, START_DELIVERY, DELIVERED }
+    public enum Status { NEW, IN_PROGRESS, DELIVERED }
 
     private final Long id;
     private final List<Item> items;

@@ -23,39 +23,25 @@ public class OrderService {
   }
 
   public void updatePaymentInfo(long orderId, PaymentInfo paymentInfo) {
-    currentOrders.computeIfPresent(
-        orderId, (key, order) -> new Order(key, order.getItems(), paymentInfo, order.isPacked(), Status.IN_PROGRESS));
-    checkPossibleDelivery(orderId);
+    checkPossibleDelivery(currentOrders.computeIfPresent(
+            orderId, (key, order) -> new Order(key, order.getItems(), paymentInfo, order.isPacked(), Status.IN_PROGRESS)));
   }
 
   public void setPacked(long orderId) {
-    currentOrders.computeIfPresent(
-            orderId, (key, order) -> new Order(key, order.getItems(), order.getPaymentInfo(), true, Status.IN_PROGRESS));
-    checkPossibleDelivery(orderId);
+    checkPossibleDelivery(currentOrders.computeIfPresent(
+            orderId, (key, order) -> new Order(key, order.getItems(), order.getPaymentInfo(), true, Status.IN_PROGRESS)));
   }
 
-  private void checkPossibleDelivery(long orderId) {
-    var order = currentOrders.getOrDefault(orderId, null);
+  private void checkPossibleDelivery(Order order) {
     if (Objects.nonNull(order) && order.checkStatus()) {
-      if (!order.getStatus().equals(Status.START_DELIVERY)
-          && currentOrders.replace(
-              orderId,
-              order,
-              new Order(
-                  orderId,
-                  order.getItems(),
-                  order.getPaymentInfo(),
-                  order.isPacked(),
-                  Status.START_DELIVERY))) {
-        deliver(orderId);
-      }
+        deliver(order);
     }
   }
 
-  private void deliver(long orderId) {
+  private void deliver(Order order) {
     //delivery
     currentOrders.computeIfPresent(
-            orderId, (key, value) -> new Order(key, value.getItems(), value.getPaymentInfo(), value.isPacked(), Status.DELIVERED));
+            order.getId(), (key, value) -> new Order(key, value.getItems(), value.getPaymentInfo(), value.isPacked(), Status.DELIVERED));
   }
 
   public boolean isDelivered(long orderId) {
