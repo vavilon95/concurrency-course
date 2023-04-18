@@ -2,17 +2,15 @@ package course.concurrency.exams.refactoring;
 
 import static course.concurrency.exams.refactoring.Others.*;
 
-import java.util.concurrent.CountDownLatch;
-
-public class MountTableRefresherThread {
+public class MountTableRefresherTask {
 
     private boolean success = false;
     /** Admin server on which refreshed to be invoked. */
     private String adminAddress;
     private MountTableManager manager;
 
-    public MountTableRefresherThread(MountTableManager manager,
-                                     String adminAddress) {
+    public MountTableRefresherTask(MountTableManager manager,
+                                   String adminAddress) {
         this.manager = manager;
         this.adminAddress = adminAddress;
     }

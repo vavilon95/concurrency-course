@@ -91,14 +91,14 @@ public class MountTableRefresherService {
             .thenApply(
                 r ->
                     Stream.of(features)
-                        .map(feature -> (MountTableRefresherThread) feature.join())
+                        .map(feature -> (MountTableRefresherTask) feature.join())
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList()))
             .join();
     logResult(results);
   }
 
-  private MountTableRefresherThread getRefreshThread(String adminAddress) {
+  private MountTableRefresherTask getRefreshThread(String adminAddress) {
     if (adminAddress == null || adminAddress.length() == 0) {
       // this router has not enabled router admin.
       return null;
@@ -110,11 +110,11 @@ public class MountTableRefresherService {
        */
       return getLocalRefresher(adminAddress);
     }
-    return new MountTableRefresherThread(manager, adminAddress);
+    return new MountTableRefresherTask(manager, adminAddress);
   }
 
-  protected MountTableRefresherThread getLocalRefresher(String adminAddress) {
-    return new MountTableRefresherThread(manager, adminAddress);
+  protected MountTableRefresherTask getLocalRefresher(String adminAddress) {
+    return new MountTableRefresherTask(manager, adminAddress);
   }
 
   private void removeFromCache(String adminAddress) {
@@ -125,14 +125,15 @@ public class MountTableRefresherService {
     return adminAddress.contains("local");
   }
 
-  private void logResult(List<MountTableRefresherThread> refreshThreads) {
+  private void logResult(List<MountTableRefresherTask> refreshThreads) {
     int successCount = 0;
     int failureCount = 0;
-    for (MountTableRefresherThread mountTableRefreshThread : refreshThreads) {
+    for (MountTableRefresherTask mountTableRefreshThread : refreshThreads) {
       if (mountTableRefreshThread.isSuccess()) {
         successCount++;
       } else {
         failureCount++;
+        log("Not all router admins updated their cache");
         // remove RouterClient from cache so that new client is created
         removeFromCache(mountTableRefreshThread.getAdminAddress());
       }
