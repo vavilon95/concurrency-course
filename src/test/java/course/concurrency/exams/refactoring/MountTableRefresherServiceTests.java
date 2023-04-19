@@ -58,6 +58,7 @@ public class MountTableRefresherServiceTests {
 
         // then
         verify(mockedService).log("Mount table entries cache refresh successCount=4,failureCount=0");
+        verify(mockedService, never()).log("Not all router admins updated their cache");
         verify(routerClientsCache, never()).invalidate(anyString());
     }
 
@@ -80,6 +81,7 @@ public class MountTableRefresherServiceTests {
 
         // then
         verify(mockedService).log("Mount table entries cache refresh successCount=0,failureCount=4");
+        verify(mockedService).log("Not all router admins updated their cache");
         verify(routerClientsCache, times(addresses.size())).invalidate(anyString());
     }
 
@@ -105,6 +107,7 @@ public class MountTableRefresherServiceTests {
 
         // then
         verify(mockedService).log("Mount table entries cache refresh successCount=2,failureCount=2");
+        verify(mockedService).log("Not all router admins updated their cache");
         verify(routerClientsCache, times(addresses.size() / 2)).invalidate(anyString());
     }
 
@@ -128,6 +131,7 @@ public class MountTableRefresherServiceTests {
 
         // then
         verify(mockedService).log("Mount table entries cache refresh successCount=3,failureCount=1");
+        verify(mockedService).log("Not all router admins updated their cache");
         verify(routerClientsCache, times(1)).invalidate(anyString());
     }
 
@@ -154,6 +158,7 @@ public class MountTableRefresherServiceTests {
 
         // then
         verify(mockedService).log("Mount table entries cache refresh successCount=3,failureCount=1");
+        verify(mockedService).log("Not all router admins updated their cache");
         verify(routerClientsCache, times(1)).invalidate(anyString());
     }
 }

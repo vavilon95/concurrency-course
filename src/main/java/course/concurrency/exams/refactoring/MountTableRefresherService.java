@@ -133,7 +133,6 @@ public class MountTableRefresherService {
         successCount++;
       } else {
         failureCount++;
-        log("Not all router admins updated their cache");
         // remove RouterClient from cache so that new client is created
         removeFromCache(mountTableRefreshThread.getAdminAddress());
       }
@@ -142,6 +141,9 @@ public class MountTableRefresherService {
         String.format(
             "Mount table entries cache refresh successCount=%d,failureCount=%d",
             successCount, failureCount));
+    if (failureCount > 0) {
+      log("Not all router admins updated their cache");
+    }
   }
 
   public void log(String message) {
